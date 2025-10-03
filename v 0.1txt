@@ -1,0 +1,36 @@
+# Habit Tracker v0.1 – Description
+
+## Version
+v0.1
+
+## Feature
+Basic CLI habit/goal tracking with CSV/Excel export.
+
+## Description
+This version implements the core workflow for tracking habits and goals using a command-line interface. Users can define multiple goals, specify positive ("Do") and negative ("Don't") activities for each goal, and log their daily progress (Yes/No) for each activity. The program collects this data and generates a simple progress report for all goals for a single day. All data is exported to an Excel file for easy review.
+
+## Key Features
+- Add multiple goals via CLI.
+- For each goal, add "Do" (positive) and "Don't" (negative) activities.
+- Daily logging: For each activity, user enters completion/avoidance (Yes/No).
+- Progress report: Shows daily status for all goals and activities.
+- Data is saved to Excel (CSV/Excel export).
+- No charts or visualizations in this version.
+- No AI, no web interface—just CLI and file export.
+
+## Limitations
+- Only supports logging for one day at a time (data is overwritten on each run).
+- No weekly/monthly summaries (planned for future versions).
+- No graphical charts (added in v0.2).
+- No AI suggestions or automation.
+
+## Status
+[completed]
+
+## Example Output
+- Excel file with tables for each goal and their activities, showing daily completion/avoidance status.
+
+## Next Steps
+- v0.2 → Add Matplotlib charts for visual progress.
+- v0.3 → AI-powered activity suggestions.
+- v0.4 → Weekly/monthly/quarterly summaries.

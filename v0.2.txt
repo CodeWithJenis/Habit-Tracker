@@ -1,0 +1,38 @@
+# v0.2 – Charts with Matplotlib
+
+## Version
+v0.2
+
+## Feature
+Add charting/visualization to the CLI habit tracker using Matplotlib.
+
+## Description
+This version introduces visual progress reports using Matplotlib charts. Users can now view their habit/goal progress as pie charts and bar diagrams, making it easier to understand their performance at a glance.
+
+## Key Features
+- Pie charts for "Do" and "Don't" activity completion/avoidance per goal.
+- Overall progress pie chart for each goal.
+- Bar chart comparing total and missed progress across all goals.
+- All charts are generated and saved as images, and can be embedded in Excel reports.
+
+## Implementation Notes
+- Use a reusable function for pie chart generation.
+- Save all chart images to the project directory.
+- Clean up (delete) temporary chart images after exporting to Excel.
+- Use pandas and matplotlib for data handling and visualization.
+
+## Status
+[completed]
+
+## Example Output
+- Pie chart: Football Do Activity Progress
+- Pie chart: Football Do Not Activity Progress
+- Pie chart: Football Overall Progress
+- Bar chart: Goal Progress Comparison (all goals)
+
+## Next Steps
+- v0.3 → Auto-generate Do/Don’t with AI suggestions.
+- v0.4 → Add weekly/monthly/quarterly reports.
+
+```// filepath: d:\Carrer\AI\AI Er Learning\Projects\Habit Tracker\Barzone_v0.2.txt
+
