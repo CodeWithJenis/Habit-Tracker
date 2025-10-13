@@ -4,8 +4,21 @@ from datetime import date
 import json
 from openpyxl.drawing.image import Image as XLImage
 import os
+import mysql.connector
+from dotenv import load_dotenv
 
+load_dotenv()
 
+# --- MySQL Connection ---
+def get_connection():
+    return mysql.connector.connect(
+        host=os.getenv('DB_HOST'),
+        user=os.getenv('DB_USER'),
+        password=os.getenv('DB_PASSWORD'),
+        database=os.getenv('DB_DATABASE')
+    )
+
+# --- Pie Chart Helper ---
 def save_pie_chart(values, labels, title, path, colors):
     """Reusable function to create and save a pie chart image."""
     plt.figure(figsize=(4, 3))
@@ -23,9 +36,8 @@ def save_pie_chart(values, labels, title, path, colors):
     plt.savefig(path)
     plt.close()
 
-
+# --- Input Goals ---
 def input_goals():
-    """Prompt the user to input goals and their associated activities."""
     goals = []
     ng = int(input("How many goals do you have? "))
     
@@ -55,9 +67,8 @@ def input_goals():
     
     return goals
 
-
+# --- Display Goals ---
 def display_goals(goals):
-    """Display all entered goals and their activities."""
     for i, goal in enumerate(goals):
         print(f"\nGoal {i+1}: {goal['name']}")
         print("  Do Activities:")
@@ -67,8 +78,8 @@ def display_goals(goals):
         for activity in goal["do_not"]:
             print(f"    - {activity}")
 
+# --- Track Daily Progress ---
 def tracker_goals(goals):
-    """Track daily progress for each goal and activity."""
     today = date.today().isoformat()
     dates = input(f"Press Enter for {today} or Enter previous dates (YYYY-MM-DD):") or today
     TICK = "✔️"
@@ -78,34 +89,29 @@ def tracker_goals(goals):
         'goals': []
     }
     for i, goal in enumerate(goals):
-        goal_result = {
-            'name': goal["name"],
-            'do': [],
-            'do_not': []
-        }
+        goal_result = {'name': goal['name'], 'do': [], 'do_not': []}
         print(f"\nGoal {i+1}: {goal['name']}")
+
         for activity in goal["do"]:
-            print(f"    - {activity}")
-            status = input("Completed (y/n?): ").strip().lower()
+            status = input(f"Completed '{activity}'? (y/n): ").strip().lower()
             goal_result['do'].append({
                 'activity': activity,
                 'status': TICK if status == "y" else CROSS
             })
 
-        print("  Do Not Activities:")
         for activity in goal["do_not"]:
-            print(f"    - {activity}")
-            status = input("Did you AVOID it? (y/n):").strip().lower()
+            status = input(f"Avoided '{activity}'? (y/n): ").strip().lower()
             goal_result['do_not'].append({
                 'activity': activity,
                 'status': TICK if status == "y" else CROSS
             })
         goals_progress['goals'].append(goal_result)
+
     print(json.dumps(goals_progress, indent=2, ensure_ascii=False))
     return goals_progress
 
+# --- Flatten Nested Data for Excel / DB ---
 def flatten_goals_progress(goals_progress):
-    """Flatten the nested goals progress structure into lists for Excel export."""
     track_do = []
     track_do_not=[]
     date = goals_progress['date']
@@ -247,6 +253,48 @@ def export_to_excel(goals, track_do, track_do_not):
         except Exception as e:
             print(f"Could not remove {img_path}: {e}")
 
+# --- Insert Goals into DB ---
+def insert_goal(goals,conn):
+    cursor = conn.cursor()
+    goal_id_map = {}
+
+    for goal in goals:
+        sql = 'INSERT INTO goals (goal_name) VALUE (%s)'
+        cursor.execute(sql,(goal['name'],))
+        goal_id = cursor.lastrowid
+        goal_id_map[goal['name']] = goal_id
+       
+    conn.commit()
+    cursor.close()
+    return goal_id_map
+
+# --- Insert Logs into DB ---
+def insert_log(track_do,track_do_not,goal_id_map,conn):
+    cursor = conn.cursor()
+    sql = 'INSERT INTO logs (goal_id,date,activity_type,activity,completed_avoided) VALUE (%s,%s,%s,%s,%s)'
+    
+    for item in track_do:
+        cursor.execute(sql,(
+            goal_id_map[item['Goal']],
+            item['Date'],
+            "Do",
+            item['Do Activity'],
+            1 if item['Completed'] == "✔️" else 0
+        ))
+    
+    for item in track_do_not:
+        cursor.execute(sql,(
+            goal_id_map[item['Goal']],
+            item['Date'],
+            "Do Not",
+            item['Do Not Activity'],
+            1 if item['Avoided'] == "✔️" else 0
+        ))
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+# --- Main Workflow ---
 def main():
     """Main function to run the habit tracker workflow."""
     goals = input_goals()
@@ -254,7 +302,17 @@ def main():
     goals_progress = tracker_goals(goals)
     track_do, track_do_not = flatten_goals_progress(goals_progress)
     export_to_excel(goals, track_do, track_do_not)
-
+    
+    conn = get_connection()
+    try:
+        goal_id_map = insert_goal(goals, conn)
+        insert_log(track_do, track_do_not, goal_id_map, conn)
+    finally:
+        if conn.is_connected():
+            conn.close()
+            print("Database connection closed.")
 
 if __name__ == "__main__":
     main()
+
+
