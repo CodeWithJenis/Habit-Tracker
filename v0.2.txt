@@ -34,5 +34,4 @@ This version introduces visual progress reports using Matplotlib charts. Users c
 - v0.3 → Auto-generate Do/Don’t with AI suggestions.
 - v0.4 → Add weekly/monthly/quarterly reports.
 
-```// filepath: d:\Carrer\AI\AI Er Learning\Projects\Habit Tracker\Barzone_v0.2.txt
 
